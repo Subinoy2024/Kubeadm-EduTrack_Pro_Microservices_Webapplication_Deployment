@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: edutrack
+  labels:
+    app: user-service
+    app.kubernetes.io/part-of: edutrack
+data:
+  NODE_ENV: "production"
+  PORT: "3002"
+  AUTH_SERVICE_URL: "http://auth-service:3001"
+  MAX_UPLOAD_SIZE: "5242880"
+  LOG_LEVEL: "info"

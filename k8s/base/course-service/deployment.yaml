@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-service
+  namespace: edutrack
+  labels:
+    app: course-service
+    app.kubernetes.io/part-of: edutrack
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: course-service
+  template:
+    metadata:
+      labels:
+        app: course-service
+        app.kubernetes.io/part-of: edutrack
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: course-service
+          image: edutrack/course-service:latest
+          ports:
+            - containerPort: 3003
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: course-service-config
+            - secretRef:
+                name: edutrack-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true

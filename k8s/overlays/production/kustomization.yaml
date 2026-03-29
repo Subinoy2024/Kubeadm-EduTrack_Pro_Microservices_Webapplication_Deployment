@@ -1,0 +1,55 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: edutrack
+
+resources:
+  - ../../base/ingress/namespace.yaml
+  - ../../base/ingress/secrets.yaml
+  - ../../base/ingress/ingress.yaml
+  - ../../base/api-gateway/deployment.yaml
+  - ../../base/api-gateway/service.yaml
+  - ../../base/api-gateway/configmap.yaml
+  - ../../base/api-gateway/hpa.yaml
+  - ../../base/auth-service/deployment.yaml
+  - ../../base/auth-service/service.yaml
+  - ../../base/auth-service/configmap.yaml
+  - ../../base/auth-service/hpa.yaml
+  - ../../base/user-service/deployment.yaml
+  - ../../base/user-service/service.yaml
+  - ../../base/user-service/configmap.yaml
+  - ../../base/user-service/hpa.yaml
+  - ../../base/course-service/deployment.yaml
+  - ../../base/course-service/service.yaml
+  - ../../base/course-service/configmap.yaml
+  - ../../base/course-service/hpa.yaml
+  - ../../base/assignment-service/deployment.yaml
+  - ../../base/assignment-service/service.yaml
+  - ../../base/assignment-service/configmap.yaml
+  - ../../base/assignment-service/hpa.yaml
+  - ../../base/meeting-service/deployment.yaml
+  - ../../base/meeting-service/service.yaml
+  - ../../base/meeting-service/configmap.yaml
+  - ../../base/meeting-service/hpa.yaml
+  - ../../base/recording-service/deployment.yaml
+  - ../../base/recording-service/service.yaml
+  - ../../base/recording-service/configmap.yaml
+  - ../../base/recording-service/hpa.yaml
+  - ../../base/ai-chat-service/deployment.yaml
+  - ../../base/ai-chat-service/service.yaml
+  - ../../base/ai-chat-service/configmap.yaml
+  - ../../base/ai-chat-service/hpa.yaml
+  - ../../base/notification-service/deployment.yaml
+  - ../../base/notification-service/service.yaml
+  - ../../base/notification-service/configmap.yaml
+  - ../../base/notification-service/hpa.yaml
+  - ../../base/postgres/statefulset.yaml
+  - ../../base/postgres/service.yaml
+  - ../../base/redis/deployment.yaml
+  - ../../base/redis/service.yaml
+
+patches:
+  - path: replicas-patch.yaml
+
+commonLabels:
+  environment: production

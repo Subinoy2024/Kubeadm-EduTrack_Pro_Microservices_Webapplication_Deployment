@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Docker
+docker/postgres_data/
+docker/redis_data/
+
+# Coverage
+coverage/
+
+# Temp
+tmp/
+.tmp/
+
+# Lock files (keep package-lock.json, ignore bun)
+bun.lockb
+bun.lock
+
+# Source zip (original)
+source/

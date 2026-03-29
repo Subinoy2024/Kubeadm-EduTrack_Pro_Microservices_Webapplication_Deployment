@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: edutrack
+spec:
+  selector:
+    app: user-service
+  ports:
+    - name: http
+      port: 3002
+      targetPort: 3002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: edutrack
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: user-service
+          image: YOUR_IMAGE_REGISTRY/edutrack-user-service:YOUR_IMAGE_TAG
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3002
+              name: http
+          env:
+            - name: PORT
+              value: "3002"
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: NODE_ENV
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edutrack-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: edutrack-secrets
+                  key: JWT_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

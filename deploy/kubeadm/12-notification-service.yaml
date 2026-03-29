@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: edutrack
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - name: http
+      port: 3008
+      targetPort: 3008
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: edutrack
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: notification-service
+          image: YOUR_IMAGE_REGISTRY/edutrack-notification-service:YOUR_IMAGE_TAG
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3008
+              name: http
+          env:
+            - name: PORT
+              value: "3008"
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: NODE_ENV
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edutrack-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: edutrack-secrets
+                  key: JWT_SECRET
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: SMTP_PORT
+            - name: SMTP_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: edutrack-secrets
+                  key: SMTP_PASS
+            - name: FROM_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: FROM_EMAIL
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3008
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3008
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

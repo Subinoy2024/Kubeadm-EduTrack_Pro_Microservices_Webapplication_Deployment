@@ -1,0 +1,76 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: edutrack-db-setup
+  namespace: edutrack
+spec:
+  backoffLimit: 4
+  template:
+    metadata:
+      labels:
+        app: edutrack-db-setup
+    spec:
+      restartPolicy: Never
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: db-setup
+          image: YOUR_IMAGE_REGISTRY/edutrack-db-tools:YOUR_IMAGE_TAG
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+          - |
+            node -e "
+            const net = require('net');
+            const host = process.env.POSTGRES_HOST;
+            const port = Number(process.env.POSTGRES_PORT || 5432);
+
+            function waitForDb() {
+              const socket = net.connect({ host, port }, () => {
+                console.log('postgres is reachable');
+                socket.end();
+                process.exit(0);
+              });
+
+              socket.on('error', () => {
+                console.log('waiting for postgres...');
+                setTimeout(waitForDb, 5000);
+              });
+            }
+
+            waitForDb();
+            "
+            npm run migrate
+            npm run seed
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edutrack-secrets
+                  key: DATABASE_URL
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: edutrack-config
+                  key: POSTGRES_DB
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]

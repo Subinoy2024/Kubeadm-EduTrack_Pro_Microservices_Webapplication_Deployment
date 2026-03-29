@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: meeting-service-config
+  namespace: edutrack
+  labels:
+    app: meeting-service
+    app.kubernetes.io/part-of: edutrack
+data:
+  NODE_ENV: "production"
+  PORT: "3005"
+  RECORDING_SERVICE_URL: "http://recording-service:3006"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:3008"
+  MAX_PARTICIPANTS: "100"
+  MEETING_TIMEOUT_MINUTES: "120"
+  LOG_LEVEL: "info"

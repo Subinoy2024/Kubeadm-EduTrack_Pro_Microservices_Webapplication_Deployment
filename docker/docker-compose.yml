@@ -1,0 +1,268 @@
+version: '3.8'
+
+services:
+  # ==================== Infrastructure ====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: edutrack-postgres
+    environment:
+      POSTGRES_DB: edutrack
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edutrack-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: edutrack-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edutrack-network
+
+  # ==================== API Gateway ====================
+  api-gateway:
+    build:
+      context: ../backend/api-gateway
+      dockerfile: ../../docker/Dockerfile.service
+    container_name: edutrack-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USER_SERVICE_URL: http://user-service:3002
+      COURSE_SERVICE_URL: http://course-service:3003
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:3004
+      MEETING_SERVICE_URL: http://meeting-service:3005
+      RECORDING_SERVICE_URL: http://recording-service:3006
+      AI_CHAT_SERVICE_URL: http://ai-chat-service:3007
+      NOTIFICATION_SERVICE_URL: http://notification-service:3008
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    networks:
+      - edutrack-network
+
+  # ==================== Microservices ====================
+  auth-service:
+    build:
+      context: ../backend/services/auth-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-auth
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      JWT_EXPIRES_IN: 15m
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+  user-service:
+    build:
+      context: ../backend/services/user-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-users
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+  course-service:
+    build:
+      context: ../backend/services/course-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-courses
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+  assignment-service:
+    build:
+      context: ../backend/services/assignment-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-assignments
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+  meeting-service:
+    build:
+      context: ../backend/services/meeting-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-meetings
+    ports:
+      - "3005:3005"
+    environment:
+      PORT: 3005
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3005/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+  recording-service:
+    build:
+      context: ../backend/services/recording-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-recordings
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: 3006
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3006/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+  ai-chat-service:
+    build:
+      context: ../backend/services/ai-chat-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-ai-chat
+    ports:
+      - "3007:3007"
+    environment:
+      PORT: 3007
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      AI_PROVIDER: built-in
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3007/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+  notification-service:
+    build:
+      context: ../backend/services/notification-service
+      dockerfile: ../../../docker/Dockerfile.service
+    container_name: edutrack-notifications
+    ports:
+      - "3008:3008"
+    environment:
+      PORT: 3008
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/edutrack
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min32chars}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@edutrack.com}
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3008/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edutrack-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  edutrack-network:
+    driver: bridge

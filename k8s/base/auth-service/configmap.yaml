@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: edutrack
+  labels:
+    app: auth-service
+    app.kubernetes.io/part-of: edutrack
+data:
+  NODE_ENV: "production"
+  PORT: "3001"
+  TOKEN_EXPIRY: "3600"
+  REFRESH_TOKEN_EXPIRY: "604800"
+  BCRYPT_SALT_ROUNDS: "12"
+  LOG_LEVEL: "info"

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: assignment-service-config
+  namespace: edutrack
+  labels:
+    app: assignment-service
+    app.kubernetes.io/part-of: edutrack
+data:
+  NODE_ENV: "production"
+  PORT: "3004"
+  COURSE_SERVICE_URL: "http://course-service:3003"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:3008"
+  MAX_FILE_UPLOAD_SIZE: "10485760"
+  LOG_LEVEL: "info"

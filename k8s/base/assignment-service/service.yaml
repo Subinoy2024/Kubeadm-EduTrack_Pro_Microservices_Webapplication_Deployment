@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: assignment-service
+  namespace: edutrack
+  labels:
+    app: assignment-service
+    app.kubernetes.io/part-of: edutrack
+spec:
+  type: ClusterIP
+  selector:
+    app: assignment-service
+  ports:
+    - port: 3004
+      targetPort: 3004
+      protocol: TCP

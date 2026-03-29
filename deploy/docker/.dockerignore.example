@@ -1,0 +1,10 @@
+.git
+frontend
+node_modules
+**/node_modules
+**/.env
+**/dist
+deploy
+k8s
+docker
+docs
