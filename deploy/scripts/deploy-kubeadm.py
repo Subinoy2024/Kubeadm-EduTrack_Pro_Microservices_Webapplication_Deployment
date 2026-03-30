@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 KUBEADM_FOLDER = Path("deploy/kubeadm")
-DEPLOY_NAMESPACE = os.getenv("DEPLOY_NAMESPACE", "edutrack")
+DEPLOY_NAMESPACE = os.getenv("DEPLOY_NAMESPACE", "edutracklocal")
 DEPLOY_FRONTEND = os.getenv("DEPLOY_FRONTEND", "false").lower() == "true"
 ROLLOUT_TIMEOUT = os.getenv("ROLLOUT_TIMEOUT", "180s")
 WAIT_TIMEOUT_SECONDS = int(os.getenv("WAIT_TIMEOUT_SECONDS", "300"))
