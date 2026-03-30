@@ -69,8 +69,7 @@ def wait_for_resource(kind, name):
         "kubectl", "wait",
         f"--namespace={DEPLOY_NAMESPACE}",
         "--for=condition=ready",
-        kind,
-        name,
+        f"{kind}/{name}",
         f"--timeout={ROLLOUT_TIMEOUT}",
     ]
     run_command(command)
@@ -84,6 +83,16 @@ def wait_for_job(name):
         "--for=condition=complete",
         f"job/{name}",
         f"--timeout={ROLLOUT_TIMEOUT}",
+    ]
+    run_command(command)
+
+
+def delete_job_if_exists(name):
+    print(f"\nDeleting old job/{name} if it exists...")
+    command = [
+        "kubectl", "delete", "job", name,
+        f"--namespace={DEPLOY_NAMESPACE}",
+        "--ignore-not-found",
     ]
     run_command(command)
 
@@ -144,6 +153,7 @@ def main():
     wait_for_postgres_pod()
     rollout_deployment("redis")
 
+    delete_job_if_exists("edutrack-db-setup")
     apply_manifest("15-db-setup-job.yaml")
     wait_for_job("edutrack-db-setup")
 
