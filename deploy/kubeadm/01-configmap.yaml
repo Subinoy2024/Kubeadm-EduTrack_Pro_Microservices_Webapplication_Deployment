@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: edutrack-config
-  namespace: edutrack
+  namespace: edutracklocal
 data:
   NODE_ENV: "production"
   POSTGRES_DB: "edutrack"
