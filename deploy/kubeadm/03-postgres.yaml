@@ -29,7 +29,6 @@ spec:
     spec:
       terminationGracePeriodSeconds: 30
       securityContext:
-        fsGroup: 999
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -40,14 +39,8 @@ spec:
             - containerPort: 5432
               name: postgres
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
-            runAsNonRoot: true
-            runAsUser: 999
-            runAsGroup: 999
-            capabilities:
-              drop:
-                - ALL
+            runAsUser: 0
+            allowPrivilegeEscalation: true
           env:
             - name: POSTGRES_DB
               valueFrom:
