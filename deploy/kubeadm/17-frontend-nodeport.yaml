@@ -11,5 +11,5 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
-      nodePort: 30081
+      nodePort: 30091
       protocol: TCP
